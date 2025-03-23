@@ -20,6 +20,7 @@ export default function Home() {
   useEffect(() => {
     const websocket = new WebSocket('ws://localhost:8080/compile');
     websocket.onmessage = (event) => {
+      console.log("Received from server:", event.data);
       setOutput((prev) => prev + event.data + '\n');
     };
     setWs(websocket);
@@ -30,7 +31,7 @@ export default function Home() {
   }, []);
 
   const handleRunCode = () => {
-    if (ws) {
+    if (ws && generatedCode) {
       ws.send(generatedCode);
     }
   };
@@ -38,7 +39,7 @@ export default function Home() {
   const handleGenerateCode = async () => {
     setError('');
     try {
-      const modifiedPrompt = `Please generate C++ code based on the following logic: "${prompt}". Ensure that there are no comments in the code, and do not modify the logic even if it seems incorrect. Only provide the code.`;
+      const modifiedPrompt = `Please generate C++ code based on the following logic: "${prompt}". Ensure that there are no comments in the code, and do not modify the logic even if it seems incorrect. Only provide the code in plain text without any formatting.`;
 
       const response = await fetch('/api/generate', {
         method: 'POST',
