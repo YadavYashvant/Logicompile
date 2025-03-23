@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import Image from "next/image";
 import dynamic from 'next/dynamic';
 import { cpp } from '@codemirror/lang-cpp';
-import { Button, Input } from 'antd';
+import { Button, Input, Divider } from 'antd';
 import { oneDark } from '@codemirror/theme-one-dark';
-import Terminal from './components/Terminal';
+import CustomTerminal from './components/Terminal';
 
 const CodeEditor = dynamic(() => import('@uiw/react-codemirror'), { ssr: false });
 
@@ -70,8 +70,19 @@ export default function Home() {
         />
         <Button onClick={handleGenerateCode}>Generate Code</Button>
       </div>
-      <Button onClick={handleRunCode}>Run Code</Button>
-      <Terminal output={output} />
+      <Divider />
+      <div style={{ width: '100%' }}>
+        <CodeEditor
+          value={generatedCode}
+          height="300px"
+          extensions={[cpp()]}
+          onChange={(value) => setGeneratedCode(value)}
+        />
+      </div>
+      <Divider />
+      <Button onClick={handleRunCode} style={{ width: '100%' }}>Run Code</Button>
+      <Divider />
+      <CustomTerminal output={output} />
       {error && <p className="text-red-500">{error}</p>}
     </div>
   );
