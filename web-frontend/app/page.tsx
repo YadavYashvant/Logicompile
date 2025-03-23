@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Image from "next/image";
 import dynamic from 'next/dynamic';
 import { cpp } from '@codemirror/lang-cpp';
 import { Button, Input } from 'antd';
 import { oneDark } from '@codemirror/theme-one-dark';
+import Terminal from './components/Terminal';
 
 const CodeEditor = dynamic(() => import('@uiw/react-codemirror'), { ssr: false });
 
@@ -13,6 +14,26 @@ export default function Home() {
   const [generatedCode, setGeneratedCode] = useState('');
   const [error, setError] = useState('');
   const [prompt, setPrompt] = useState('');
+  const [output, setOutput] = useState('');
+  const [ws, setWs] = useState<WebSocket | null>(null);
+
+  useEffect(() => {
+    const websocket = new WebSocket('ws://localhost:8080/compile');
+    websocket.onmessage = (event) => {
+      setOutput((prev) => prev + event.data + '\n');
+    };
+    setWs(websocket);
+
+    return () => {
+      websocket.close();
+    };
+  }, []);
+
+  const handleRunCode = () => {
+    if (ws) {
+      ws.send(generatedCode);
+    }
+  };
 
   const handleGenerateCode = async () => {
     setError('');
@@ -47,17 +68,10 @@ export default function Home() {
           placeholder="Enter your prompt here..."
           className="flex-grow"
         />
-        <Button onClick={handleGenerateCode}>Send</Button>
+        <Button onClick={handleGenerateCode}>Generate Code</Button>
       </div>
-      <CodeEditor
-        value={generatedCode}
-        height="400px"
-        extensions={[cpp(), oneDark]}
-        onChange={(value, viewUpdate) => {
-          setGeneratedCode(value);
-        }}
-        className="w-full"
-      />
+      <Button onClick={handleRunCode}>Run Code</Button>
+      <Terminal output={output} />
       {error && <p className="text-red-500">{error}</p>}
     </div>
   );
